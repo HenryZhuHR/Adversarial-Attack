@@ -115,6 +115,7 @@ tmux split-window -h
 
 # Tensorboard
 ```bash
+tensorboard --logdir runs
 tensorboard --logdir runs --host 192.168.101.11 --port 6606
 ```
 
