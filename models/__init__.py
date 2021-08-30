@@ -12,4 +12,6 @@ from .resnet_nonlocal import (
     Resnet50_NonLocal_layer2,
     Resnet50_NonLocal_layer3,
     Resnet50_NonLocal_layer4,
+    Resnet50_NonLocal_5block,
+    Resnet50_NonLocal_10block,
 )

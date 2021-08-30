@@ -29,6 +29,10 @@ scp -r local_folder remote_username@remote_ip:remote_folder
 scp -r `
   /Users/Henryzhu/project/deeplearning-cv/advers `
   ubuntu@192.168.101.11:/home/ubuntu/project
+# 上传脚本
+scp -r `
+  /Users/Henryzhu/project/deeplearning-cv/advers/scripts `
+  ubuntu@192.168.101.11:/home/ubuntu/project/advers
 scp -r `
   /Users/Henryzhu/project/deeplearning-cv/advers/models `
   ubuntu@192.168.101.11:/home/ubuntu/project/advers
@@ -39,8 +43,8 @@ scp `
   /Users/Henryzhu/project/deeplearning-cv/advers/models/danet.py `
   ubuntu@192.168.101.11:/home/ubuntu/project/advers/models/danet.py
 scp `
-  /Users/Henryzhu/project/deeplearning-cv/advers/train-nonlocal.sh `
-  ubuntu@192.168.101.11:/home/ubuntu/project/advers/train-nonlocal.sh
+  /Users/Henryzhu/project/deeplearning-cv/advers/train.py `
+  ubuntu@192.168.101.11:/home/ubuntu/project/advers/train.py
 ```
 - **本地** 下载
 ```ps1
@@ -52,13 +56,13 @@ scp -r `
 ```ps1
 scp -r `
   ubuntu@192.168.101.11:/home/ubuntu/project/advers/checkpoints `
-  /Users/Henryzhu/project/deeplearning-cv/advers/checkpoints
+  /Users/Henryzhu/project/deeplearning-cv/advers
 scp -r `
   ubuntu@192.168.101.11:/home/ubuntu/project/advers/logs `
-  /Users/Henryzhu/project/deeplearning-cv/advers/logs
+  /Users/Henryzhu/project/deeplearning-cv/advers
 scp -r `
   ubuntu@192.168.101.11:/home/ubuntu/project/advers/runs `
-  /Users/Henryzhu/project/deeplearning-cv/advers/runs
+  /Users/Henryzhu/project/deeplearning-cv/advers
 ```
 
 # tmux

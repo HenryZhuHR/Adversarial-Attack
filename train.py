@@ -1,7 +1,8 @@
-import argparse
+
 import os
 import copy
 import tqdm
+import argparse
 import numpy as np
 import torch
 from torch import nn
@@ -10,7 +11,6 @@ from torch import optim
 from torch import Tensor
 from torch.utils import data
 import torchvision
-from torchvision import models
 from torchvision import datasets
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
@@ -28,6 +28,8 @@ model_zoo = {
     'resnet50_nonlocal_layer2':models.Resnet50_NonLocal_layer2,
     'resnet50_nonlocal_layer3':models.Resnet50_NonLocal_layer3,
     'resnet50_nonlocal_layer4':models.Resnet50_NonLocal_layer4,
+    'resnet50_nonlocal_5block':models.Resnet50_NonLocal_5block,
+    'resnet50_nonlocal_10block':models.Resnet50_NonLocal_10block,
 }
 # --------------------------------------------------------
 #   Args
@@ -76,7 +78,7 @@ DATA_TRANSFORM = {
 
 if __name__ == '__main__':
     os.makedirs('%s/%s' % (LOG_DIR, ARCH),exist_ok=True)
-    os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
+    
 
     writer = SummaryWriter('%s/%s' % (LOG_DIR, ARCH))
 
@@ -103,7 +105,7 @@ if __name__ == '__main__':
     #   Load model and fine tune
     # ----------------------------------------
     print('Try to load model \033[0;32;40m%s\033[0m ...' % ARCH)
-    model=model_zoo[ARCH]()
+    model:nn.Module=model_zoo[ARCH]()
 
     
     
@@ -126,19 +128,19 @@ if __name__ == '__main__':
     loss_function.to(DEVICE)
     optimizer = optim.Adam(model.parameters(), lr=LR)
 
-    exit()
     print('train model in device: \033[0;32;40m%s\033[0m ' % DEVICE)
+    os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
     # ----------------------------------------
     #   Train model
     # ----------------------------------------
     train_log = []
     best_model_state_dict = copy.deepcopy(model.state_dict())
-    best_valid_acc = 0.0    
+    best_valid_acc = 0.0
     for epoch in range(1, MAX_EPOCH + 1):
         print('\033[0;32;40m[train: %s]\033[0m' % ARCH, end=' ')
         print('[Epoch] %d/%d' % (epoch, MAX_EPOCH), end=' ')
         print('[Batch Size] %d' % (BATCH_SIZE), end=' ')
-        print('[LR] %d' % (LR))
+        print('[LR] %f' % (LR))
 
         # --- train ---
         running_loss, running__acc = 0.0, 0.0
@@ -244,12 +246,13 @@ if __name__ == '__main__':
                                  (epoch_loss / batch, epoch__acc / batch))
         test_loss = running_loss / num_data
         test_acc = running__acc / num_data
+        print('Test Loss:%f Accuracy:%f' % (test_loss, test_acc))
 
     hparam_dict = {'batch size': BATCH_SIZE, 'lr': LR}
     metric_dict = {
         'train loss': train_loss, 'train accuracy': train_acc,
         'valid loss': valid_loss, 'valid accuracy': valid_acc,
-        'test loss': test_loss, 'test accuracy': test_acc
+        'test accuracy': test_acc
     }
     writer.add_hparams(hparam_dict, metric_dict)
     writer.close()

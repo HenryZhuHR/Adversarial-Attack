@@ -1,6 +1,10 @@
 __pycache__
 .vscode
+desktop.ini
 checkpoints/
 data/
+images
 logs/
+result
 runs/
+components/
