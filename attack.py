@@ -34,10 +34,10 @@ parser.add_argument('--data', type=str, default='data/custom')
 
 parser.add_argument('--batch_size', type=int, default=4)
 parser.add_argument('--num_worker', type=int, default=0)
-parser.add_argument('--logs', type=str, default='logs')
+parser.add_argument('--logs', type=str, default='server/logs')
 
 
-parser.add_argument('--logdir', type=str, default='runs')
+parser.add_argument('--logdir', type=str, default='server/runs')
 args = parser.parse_args()
 
 

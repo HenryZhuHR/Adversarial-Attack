@@ -17,44 +17,31 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 from modules import models as Models
-model_zoo = {
-    'resnet34':Models.Resnet34,
-    'resnet34_nonlocal_layer1':Models.Resnet34_NonLocal_layer1,
-    'resnet34_nonlocal_layer2':Models.Resnet34_NonLocal_layer2,
-    'resnet34_nonlocal_layer3':Models.Resnet34_NonLocal_layer3,
-    'resnet34_nonlocal_layer4':Models.Resnet34_NonLocal_layer4,
-    'resnet50':Models.Resnet50,
-    'resnet50_nonlocal_layer1':Models.Resnet50_NonLocal_layer1,
-    'resnet50_nonlocal_layer2':Models.Resnet50_NonLocal_layer2,
-    'resnet50_nonlocal_layer3':Models.Resnet50_NonLocal_layer3,
-    'resnet50_nonlocal_layer4':Models.Resnet50_NonLocal_layer4,
-    'resnet50_nonlocal_5block':Models.Resnet50_NonLocal_5block,
-    'resnet50_nonlocal_10block':Models.Resnet50_NonLocal_10block,
-}
 # --------------------------------------------------------
 #   Args
 # --------------------------------------------------------
 parser = argparse.ArgumentParser(description='train')
 
 # train parameter
-parser.add_argument('--arch', type=str, default='resnet34', choices=model_zoo)
+parser.add_argument('--arch', type=str, choices=Models.model_zoo,
+                    default=list(Models.model_zoo.keys())[0])
 parser.add_argument('--device', type=str, default='cuda:0')
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--max_epoch', type=int, default=100)
 parser.add_argument('--lr', type=float, default=0.01)
 parser.add_argument('--num_worker', type=int, default=8)
-parser.add_argument('--model_save_dir', type=str, default='checkpoints')
+parser.add_argument('--model_save_dir', type=str, default='server/checkpoints')
 parser.add_argument('--model_save_name', type=str,
                     help='using arch name if not given')
-parser.add_argument('--data', type=str, default='data/eis',
+parser.add_argument('--data', type=str, default='data/custom',
                     help='dataset folder')
-parser.add_argument('--logdir', type=str, default='runs',
+parser.add_argument('--logdir', type=str, default='server/runs',
                     help='train log save folder')
 parser.add_argument('--model_summary', action='store_true',
                     help='if print model summary')
 args = parser.parse_args()
 
-# train parameter
+# Parse Args
 ARCH: int = args.arch
 DEVICE: str = args.device
 BATCH_SIZE: int = args.batch_size    # 128
@@ -64,8 +51,8 @@ NUM_WORKERS: int = args.num_worker   # 8
 MODEL_SAVE_DIR: str = args.model_save_dir  # 'checkpoints'
 MODEL_SAVE_NAME: str = ARCH if args.model_save_name == None else args.model_save_name  # 'NONE'/ARCH
 DATASET_DIR: str = args.data  # 'data'
-LOG_DIR: str = args.logdir    # 'runs'
-IS_MODEL_SUMMARY: bool = args.model_summary 
+LOG_DIR: str = args.logdir    # 'where tensorboard data save (runs)'
+IS_MODEL_SUMMARY: bool = args.model_summary
 
 DATA_TRANSFORM = {
     'train': transforms.Compose([transforms.Resize(224),
@@ -77,13 +64,12 @@ DATA_TRANSFORM = {
 }
 
 if __name__ == '__main__':
-    os.makedirs('%s/%s' % (LOG_DIR, ARCH),exist_ok=True)
-    
+    os.makedirs('%s/%s' % (LOG_DIR, ARCH), exist_ok=True)
 
     writer = SummaryWriter('%s/%s' % (LOG_DIR, ARCH))
 
     # ----------------------------------------
-    #   Load data
+    #   Load dataset
     # ----------------------------------------
     train_set = datasets.ImageFolder(os.path.join(DATASET_DIR, 'train'),
                                      transform=DATA_TRANSFORM['train'])
@@ -105,13 +91,14 @@ if __name__ == '__main__':
     #   Load model and fine tune
     # ----------------------------------------
     print('Try to load model \033[0;32;40m%s\033[0m ...' % ARCH)
-    model:nn.Module=model_zoo[ARCH]()
-
-    
-    
+    model: nn.Module = Models.model_zoo[ARCH]()
     model.fc = nn.Linear(model.fc.in_features, num_class)
     model.to(DEVICE)
 
+    # ----------------------------------------
+    #   add model graph(tensorboard)
+    #   summary model()
+    # ----------------------------------------
     input_tensor_sample: Tensor = train_set[0][0]
     writer.add_graph(model, input_to_model=(
         input_tensor_sample.unsqueeze(0)).to(DEVICE))
@@ -128,11 +115,11 @@ if __name__ == '__main__':
     loss_function.to(DEVICE)
     optimizer = optim.Adam(model.parameters(), lr=LR)
 
-    print('train model in device: \033[0;32;40m%s\033[0m ' % DEVICE)
-    os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
     # ----------------------------------------
     #   Train model
     # ----------------------------------------
+    print('train model in device: \033[0;32;40m%s\033[0m ' % DEVICE)
+    os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
     train_log = []
     best_model_state_dict = copy.deepcopy(model.state_dict())
     best_valid_acc = 0.0
