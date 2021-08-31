@@ -16,20 +16,20 @@ from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
 
-import models
+from modules import models as Models
 model_zoo = {
-    'resnet34':models.Resnet34,
-    'resnet34_nonlocal_layer1':models.Resnet34_NonLocal_layer1,
-    'resnet34_nonlocal_layer2':models.Resnet34_NonLocal_layer2,
-    'resnet34_nonlocal_layer3':models.Resnet34_NonLocal_layer3,
-    'resnet34_nonlocal_layer4':models.Resnet34_NonLocal_layer4,
-    'resnet50':models.Resnet50,
-    'resnet50_nonlocal_layer1':models.Resnet50_NonLocal_layer1,
-    'resnet50_nonlocal_layer2':models.Resnet50_NonLocal_layer2,
-    'resnet50_nonlocal_layer3':models.Resnet50_NonLocal_layer3,
-    'resnet50_nonlocal_layer4':models.Resnet50_NonLocal_layer4,
-    'resnet50_nonlocal_5block':models.Resnet50_NonLocal_5block,
-    'resnet50_nonlocal_10block':models.Resnet50_NonLocal_10block,
+    'resnet34':Models.Resnet34,
+    'resnet34_nonlocal_layer1':Models.Resnet34_NonLocal_layer1,
+    'resnet34_nonlocal_layer2':Models.Resnet34_NonLocal_layer2,
+    'resnet34_nonlocal_layer3':Models.Resnet34_NonLocal_layer3,
+    'resnet34_nonlocal_layer4':Models.Resnet34_NonLocal_layer4,
+    'resnet50':Models.Resnet50,
+    'resnet50_nonlocal_layer1':Models.Resnet50_NonLocal_layer1,
+    'resnet50_nonlocal_layer2':Models.Resnet50_NonLocal_layer2,
+    'resnet50_nonlocal_layer3':Models.Resnet50_NonLocal_layer3,
+    'resnet50_nonlocal_layer4':Models.Resnet50_NonLocal_layer4,
+    'resnet50_nonlocal_5block':Models.Resnet50_NonLocal_5block,
+    'resnet50_nonlocal_10block':Models.Resnet50_NonLocal_10block,
 }
 # --------------------------------------------------------
 #   Args
