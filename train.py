@@ -96,8 +96,8 @@ if __name__ == '__main__':
     model.to(DEVICE)
 
     # ----------------------------------------
-    #   add model graph(tensorboard)
-    #   summary model()
+    #   tensorboard:    Add model graph
+    #   torchsummary:   Summary model
     # ----------------------------------------
     input_tensor_sample: Tensor = train_set[0][0]
     writer.add_graph(model, input_to_model=(
@@ -235,6 +235,9 @@ if __name__ == '__main__':
         test_acc = running__acc / num_data
         print('Test Loss:%f Accuracy:%f' % (test_loss, test_acc))
 
+    # ----------------------------------------
+    #   Write logs
+    # ----------------------------------------
     hparam_dict = {'batch size': BATCH_SIZE, 'lr': LR}
     metric_dict = {
         'train loss': train_loss, 'train accuracy': train_acc,
