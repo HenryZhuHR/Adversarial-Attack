@@ -27,42 +27,36 @@ scp -r local_folder remote_username@remote_ip:remote_folder
 - **本地** 上传目录
 ```ps1
 scp -r `
-  /Users/Henryzhu/project/deeplearning-cv/advers `
-  ubuntu@192.168.101.11:/home/ubuntu/project
+  ~/iCloudDrive/project/deeplearning-cv/advers `
+  ubuntu@192.168.101.11:~/project
 # 上传脚本
 scp -r `
-  /Users/Henryzhu/project/deeplearning-cv/advers/scripts `
-  ubuntu@192.168.101.11:/home/ubuntu/project/advers
+  ~/iCloudDrive/project/deeplearning-cv/advers/scripts `
+  ubuntu@192.168.101.11:~/project/advers
 scp -r `
-  /Users/Henryzhu/project/deeplearning-cv/advers/models `
-  ubuntu@192.168.101.11:/home/ubuntu/project/advers
+  ~/iCloudDrive/project/deeplearning-cv/advers/models `
+  ubuntu@192.168.101.11:~/project/advers
 ```
 - **本地** 上传单个文件
 ```ps1
 scp `
-  /Users/Henryzhu/project/deeplearning-cv/advers/models/danet.py `
-  ubuntu@192.168.101.11:/home/ubuntu/project/advers/models/danet.py
+  ~/iCloudDrive/project/deeplearning-cv/advers/models/danet.py `
+  ubuntu@192.168.101.11:~/project/advers/models/danet.py
 scp `
-  /Users/Henryzhu/project/deeplearning-cv/advers/train.py `
-  ubuntu@192.168.101.11:/home/ubuntu/project/advers/train.py
+  ~/iCloudDrive/project/deeplearning-cv/advers/train.py `
+  ubuntu@192.168.101.11:~/project/advers/train.py
 ```
 - **本地** 下载
 ```ps1
 scp -r `
-  ubuntu@192.168.101.11:/home/ubuntu/project/advers `-pll
-  /Users/Henryzhu/project/deeplearning-cv
+  ubuntu@192.168.101.11:~/project/advers `
+  ~/iCloudDrive/project/deeplearning-cv
 ```
 - **本地** 下载训练好的模型
 ```ps1
 scp -r `
-  ubuntu@192.168.101.11:/home/ubuntu/project/advers/checkpoints `
-  /Users/Henryzhu/project/deeplearning-cv/advers
-scp -r `
-  ubuntu@192.168.101.11:/home/ubuntu/project/advers/logs `
-  /Users/Henryzhu/project/deeplearning-cv/advers
-scp -r `
-  ubuntu@192.168.101.11:/home/ubuntu/project/advers/runs `
-  /Users/Henryzhu/project/deeplearning-cv/advers
+  ubuntu@192.168.101.11:~/project/advers/server `
+  ~/iCloudDrive/project/deeplearning-cv/advers
 ```
 
 # tmux

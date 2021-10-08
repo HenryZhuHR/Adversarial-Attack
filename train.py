@@ -1,4 +1,5 @@
 
+from ctypes import DEFAULT_MODE
 import os
 import copy
 import tqdm
@@ -15,7 +16,7 @@ from torchvision import datasets
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
-
+from modules import attack
 from modules import models as Models
 # --------------------------------------------------------
 #   Args
@@ -24,7 +25,9 @@ parser = argparse.ArgumentParser(description='train')
 
 # train parameter
 parser.add_argument('--arch', type=str, choices=Models.model_zoo,
-                    default=list(Models.model_zoo.keys())[0])
+                    default=list(Models.model_zoo.keys())[0],
+                    # default='resnet50',
+                    )
 parser.add_argument('--device', type=str, default='cuda:0')
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--max_epoch', type=int, default=100)
@@ -33,12 +36,17 @@ parser.add_argument('--num_worker', type=int, default=8)
 parser.add_argument('--model_save_dir', type=str, default='server/checkpoints')
 parser.add_argument('--model_save_name', type=str,
                     help='using arch name if not given')
-parser.add_argument('--data', type=str, default='data/custom',
+parser.add_argument('--data', type=str, default='%s/datasets/custom' % os.path.expanduser('~'),
                     help='dataset folder')
 parser.add_argument('--logdir', type=str, default='server/runs',
                     help='train log save folder')
 parser.add_argument('--model_summary', action='store_true',
                     help='if print model summary')
+# adversarial training
+parser.add_argument('--adversarial_training', action='store_true',
+                    help='if adversarial training')
+parser.add_argument('--attack_method', type=str, default='fgsm')
+parser.add_argument('--epsilon', type=float, default=0)
 args = parser.parse_args()
 
 # Parse Args
@@ -53,6 +61,14 @@ MODEL_SAVE_NAME: str = ARCH if args.model_save_name == None else args.model_save
 DATASET_DIR: str = args.data  # 'data'
 LOG_DIR: str = args.logdir    # 'where tensorboard data save (runs)'
 IS_MODEL_SUMMARY: bool = args.model_summary
+# adversarial training
+IS_ADVERSARIAL_TRAINING: bool = args.adversarial_training
+ATTACK_METHOD: str = args.attack_method
+EPSILON: float = args.epsilon/255.
+ATTACK_PARAM_dict = {
+    'epsilon': EPSILON,
+    'alpha': EPSILON,
+}
 
 DATA_TRANSFORM = {
     'train': transforms.Compose([transforms.Resize(224),
@@ -71,32 +87,57 @@ if __name__ == '__main__':
     # ----------------------------------------
     #   Load dataset
     # ----------------------------------------
-    train_set = datasets.ImageFolder(os.path.join(DATASET_DIR, 'train'),
+    if ARCH == 'mnist_cnn':  # https://pytorch.org/vision/stable/datasets.html#mnist
+        train_set = torchvision.datasets.MNIST(root=os.path.join(os.path.expanduser('~'), 'datasets'),
+                                               train=True, download=True,transform=transforms.ToTensor())
+        valid_set = torchvision.datasets.MNIST(root=os.path.join(os.path.expanduser('~'), 'datasets'),
+                                               train=False, download=True,transform=transforms.ToTensor())
+        test_set = torchvision.datasets.MNIST(root=os.path.join(os.path.expanduser('~'), 'datasets'),
+                                               train=False, download=True,transform=transforms.ToTensor())
+    else:
+        train_set = datasets.ImageFolder(os.path.join(DATASET_DIR, 'train'),
                                      transform=DATA_TRANSFORM['train'])
-    train_loader = data.DataLoader(train_set, batch_size=BATCH_SIZE,
-                                   shuffle=True, num_workers=NUM_WORKERS)
+        valid_set = datasets.ImageFolder(os.path.join(DATASET_DIR, 'valid'),
+                                        transform=DATA_TRANSFORM['valid'])
+        test_set = datasets.ImageFolder(os.path.join(DATASET_DIR, 'test'),
+                                        transform=DATA_TRANSFORM['test'])
 
-    valid_set = datasets.ImageFolder(os.path.join(DATASET_DIR, 'valid'),
-                                     transform=DATA_TRANSFORM['valid'])
     valid_loader = data.DataLoader(valid_set, batch_size=BATCH_SIZE,
-                                   shuffle=False, num_workers=NUM_WORKERS)
-    test_set = datasets.ImageFolder(os.path.join(DATASET_DIR, 'test'),
-                                    transform=DATA_TRANSFORM['test'])
+                                   shuffle=False, num_workers=NUM_WORKERS)    
     test_loader = data.DataLoader(test_set, batch_size=1,
                                   shuffle=False, num_workers=NUM_WORKERS)
+    train_loader = data.DataLoader(train_set, batch_size=BATCH_SIZE,
+                                   shuffle=True, num_workers=NUM_WORKERS)
+    
 
+    
     num_class = len(train_set.classes)
-
     # ----------------------------------------
     #   Load model and fine tune
     # ----------------------------------------
     print('Try to load model \033[0;32;40m%s\033[0m ...' % ARCH)
     model: nn.Module = Models.model_zoo[ARCH]()
     model.fc = nn.Linear(model.fc.in_features, num_class)
+    # -------------------- fine tune --------------------
+    # FINE_TUNE=True
+    # if FINE_TUNE:
+    #     model_state_dict=torch.load('checkpoints/resnet50-best.pt')
+    #     for name, param in model.named_parameters():
+    #         print(name,end='  ')
+    #         if name in model_state_dict:
+    #             print('--',end='')
+    #             param=model_state_dict[name]
+    #             param.requires_grad = False
+    #         print()
+
     model.to(DEVICE)
 
+    if IS_ADVERSARIAL_TRAINING:
+        model_attack: attack.BaseAttack = attack.GetAttackByName(
+            ATTACK_METHOD)(model, DEVICE, **ATTACK_PARAM_dict)
+
     # ----------------------------------------
-    #   tensorboard:    Add model graph
+    #   tensorboard :   Add model graph
     #   torchsummary:   Summary model
     # ----------------------------------------
     input_tensor_sample: Tensor = train_set[0][0]
@@ -139,6 +180,9 @@ if __name__ == '__main__':
             labels: Tensor = labels.to(DEVICE)
             batch = images.size(0)
             num_data += batch
+
+            if IS_ADVERSARIAL_TRAINING:
+                images = model_attack.attack(images, labels)
 
             output: Tensor = model(images)
             _, pred = torch.max(output, 1)
@@ -250,7 +294,7 @@ if __name__ == '__main__':
     os.makedirs('logs', exist_ok=True)
     import time
     finished_time = time.strftime("%m%d_%H%M", time.localtime())
-    with open(os.path.join('logs', '%s-%s.txt' % (ARCH, finished_time)), 'w') as f:
+    with open(os.path.join(LOG_DIR, '%s-%s.txt' % (ARCH, finished_time)), 'w') as f:
         f.write('bacth size =%d\n' % BATCH_SIZE)
         f.write('lr         =%f\n' % LR)
         f.write('train epoch=%d\n' % epoch)

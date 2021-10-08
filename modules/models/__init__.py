@@ -1,6 +1,10 @@
 import os
 from torch import nn
 
+from .cnn import (
+    MNIST_CNN,
+)
+
 from .danet import ResNet_Attention
 
 # === ResNetX with non-local adding in different stage ===
@@ -32,6 +36,7 @@ model_zoo = {
     'resnet50_nonlocal_layer4': Resnet50_NonLocal_layer4,
     'resnet50_nonlocal_5block': Resnet50_NonLocal_5block,
     'resnet50_nonlocal_10block': Resnet50_NonLocal_10block,
+    'mnist_cnn':MNIST_CNN,
 }
 
 
