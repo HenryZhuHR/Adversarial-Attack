@@ -98,7 +98,7 @@ if __name__ == '__main__':
     model: nn.Module = GetModelByName(ARCH)()
     model.fc = nn.Linear(model.fc.in_features, num_class)
     model.to(DEVICE)
-    model.load_state_dict(torch.load(CHECKPOINT))
+    # model.load_state_dict(torch.load(CHECKPOINT))
     loss_function = nn.CrossEntropyLoss().to(DEVICE)
 
     model_attack: attack.BaseAttack = attack.GetAttackByName(
